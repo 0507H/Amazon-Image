@@ -47,6 +47,7 @@ th{background:#244b9c;color:#fff}
 .single-table th,.single-table td{border:1px solid #e8edf4;padding:8px}
 .tip-ok{background:#e6ffed;border:1px solid #8fd9a8;color:#137733;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:12px;line-height:1.6}
 .tip-error{background:#ffeaea;border:1px solid #ffb4b4;color:#b42424;padding:8px 12px;border-radius:6px;font-size:13px;margin-bottom:10px}
+.main-warn-icon{color:#e53935;font-weight:bold;margin-right:4px}
 </style>
 </head>
 <body>
@@ -215,10 +216,27 @@ function keywordDetect(filename){
 }
 
 function assignTypes(images){
+  // 第一步：关键词匹配
   images.forEach(img=>{
     img.autoType = keywordDetect(img.origName);
   });
 
+  // 第二步：强制单主图规则 - 多个MAIN只保留第一个，其余顺延PT编号
+  const mainIndexList = [];
+  images.forEach((img,idx)=>{
+    if(img.autoType === 'MAIN'){
+      mainIndexList.push(idx);
+    }
+  });
+
+  if(mainIndexList.length > 1){
+    // 从第二个MAIN开始，全部清空，后续重新分配PT编号
+    for(let i=1;i<mainIndexList.length;i++){
+      images[mainIndexList[i]].autoType = null;
+    }
+  }
+
+  // 第三步：收集已占用的PT编号
   const usedPT = new Set();
   images.forEach(img=>{
     if(img.autoType && img.autoType.startsWith('PT')){
@@ -226,6 +244,7 @@ function assignTypes(images){
     }
   });
 
+  // 第四步：无类型的图片按顺序补PT编号
   let ptNum = 1;
   images.forEach(img=>{
     if(!img.autoType){
@@ -234,6 +253,7 @@ function assignTypes(images){
       usedPT.add(ptNum);
       ptNum++;
     }
+    // 手动类型默认同步自动类型
     if(!img.manualType){
       img.manualType = img.autoType;
     }
@@ -287,6 +307,11 @@ function renderSingleTable(){
   const tipEl = document.getElementById('singleMainTip');
   if(singleImages.length > 0 && mainCount !== 1){
     tipEl.style.display = 'block';
+    if(mainCount === 0){
+      tipEl.textContent = '⚠️ 未识别到主图（MAIN），生成压缩包时会报错，请在「手动类型」列中设置主图';
+    } else {
+      tipEl.textContent = '⚠️ 主图数量过多，仅需1个MAIN，请调整手动类型';
+    }
   } else {
     tipEl.style.display = 'none';
   }
@@ -543,11 +568,17 @@ function renderGroups(){
 
   for(let g of groupList){
     const mainCount = g.images.filter(i=>i.manualType==='MAIN').length;
+    const hasWarn = mainCount !== 1;
+    let warnText = '';
+    if(mainCount === 0) warnText = '缺少主图';
+    if(mainCount > 1) warnText = '主图过多';
+
     const card = document.createElement('div');
     card.className = 'group-card';
     card.innerHTML = `
       <div class="group-header" data-sku="${g.sku}">
         <span style="font-size:16px">${g.collapsed ? '▸' : '▾'}</span>
+        ${hasWarn ? '<span class="main-warn-icon" title="'+warnText+'">⚠️</span>' : ''}
         <b>SKU: ${g.sku}</b>
         <span style="color:#666;font-size:13px">(${g.images.length}张)</span>
         <input type="text" placeholder="本组ASIN" value="${g.asin}" class="groupAsinInput" data-sku="${g.sku}" style="flex:1;min-width:120px">
@@ -560,7 +591,7 @@ function renderGroups(){
         <button class="btn-red delGroupBtn" data-sku="${g.sku}">删除分组</button>
       </div>
       <div class="group-body ${g.collapsed?'':'open'}" data-sku="${g.sku}">
-        ${mainCount !== 1 ? '<div class="tip-error">⚠️ 缺少主图（MAIN），生成ZIP时会报错，请手动设置</div>' : ''}
+        ${hasWarn ? '<div class="tip-error">⚠️ '+warnText+'（MAIN），生成ZIP时会报错，请手动设置</div>' : ''}
         <table>
           <tr>
             <th>原始文件名</th>
