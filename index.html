@@ -496,6 +496,36 @@ function keywordDetect(filename){
   return null;
 }
 
+
+// 手动类型去重：手动修改后，被改图片保留新值，其他撞号图片顺延到下一未占用PT号
+function dedupManualTypes(images, changedIdx){
+  var nv = images[changedIdx] && images[changedIdx].manualType;
+  if(!nv || nv==='MAIN') return;
+  var used = new Set([nv]);
+  images.forEach(function(img,i){
+    if(i===changedIdx) return;
+    if(!img.manualType || img.manualType==='MAIN') return;
+    if(!/^PT\d+$/.test(img.manualType)) return;
+    while(used.has(img.manualType)){
+      var n=parseInt(img.manualType.replace('PT',''),10)+1;
+      img.manualType='PT'+String(n).padStart(2,'0');
+    }
+    used.add(img.manualType);
+  });
+}
+// 初始/重置后保证同组手动PT号唯一（按表格顺序，靠后的撞号顺延）
+function ensureUniqueManual(images){
+  var used = new Set();
+  images.forEach(function(img){
+    if(!img.manualType || img.manualType==='MAIN') return;
+    if(!/^PT\d+$/.test(img.manualType)) return;
+    while(used.has(img.manualType)){
+      var n=parseInt(img.manualType.replace('PT',''),10)+1;
+      img.manualType='PT'+String(n).padStart(2,'0');
+    }
+    used.add(img.manualType);
+  });
+}
 function assignTypes(images){
   // 第一步：关键词匹配
   images.forEach(img=>{
@@ -539,6 +569,8 @@ function assignTypes(images){
       img.manualType = img.autoType;
     }
   });
+  // 初始去重：手动PT号不重复
+  ensureUniqueManual(images);
 }
 
 // ========== 单ASIN逻辑 ==========
@@ -631,6 +663,7 @@ function renderSingleTable(){
     sel.onchange = ()=>{
       const idx = Number(sel.dataset.idx);
       singleImages[idx].manualType = sel.value;
+      dedupManualTypes(singleImages, idx);
       renderSingleTable();
     }
   });
@@ -706,8 +739,8 @@ document.getElementById('singleExport').onclick = ()=>{
 // ========== 多ASIN逻辑 ==========
 let groupList = [];
 let multiTotal = 0;
-let lastMultiZipDate = '';
-let multiZipCounter = 0;
+let lastMultiZipDate = localStorage.getItem('amzMultiZipDate') || '';
+let multiZipCounter = parseInt(localStorage.getItem('amzMultiZipCounter') || '0', 10) || 0;
 const multiLog = document.getElementById('multiLog');
 function mlog(msg){
   const t = new Date().toLocaleTimeString();
@@ -983,6 +1016,7 @@ function bindGroupEvents(){
       const idx = Number(sel.dataset.idx);
       const g = groupList.find(x=>x.sku===sku);
       g.images[idx].manualType = sel.value;
+      dedupManualTypes(g.images, idx);
       renderGroups();
     }
   });
@@ -1103,6 +1137,7 @@ document.getElementById('multiGenZip').onclick = async ()=>{
   } else {
     multiZipCounter++;
   }
+  try{ localStorage.setItem('amzMultiZipDate', lastMultiZipDate); localStorage.setItem('amzMultiZipCounter', String(multiZipCounter)); }catch(e){}
 
   let zipFileName;
   if(multiZipCounter === 1){
