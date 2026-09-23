@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>亚马逊图片批量上传转换器</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui, sans-serif}
+body{background:#f3f6fa;color:#222}
+.container{display:flex;min-height:100vh}
+.sidebar{width:180px;background:#202938;color:#fff;padding:12px;flex-shrink:0}
+.sidebar .title{font-weight:bold;padding:8px 12px;margin-bottom:12px;border-bottom:1px solid #3a465a}
+.sidebar .menu-item{padding:10px 12px;margin:6px 0;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px}
+.sidebar .menu-item:hover{background:#2d3a50}
+.sidebar .menu-item.active{background:#ffaa22;color:#000;font-weight:bold}
+.main{flex:1;padding:16px;overflow:auto}
+.page{display:none}
+.page.active{display:block}
+.header-bar{background:#194b9c;color:#fff;padding:18px;border-radius:8px;margin-bottom:16px}
+.page-card{background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 4px #00000012}
+.upload-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px}
+.upload-area{border:2px dashed #cad6e8;border-radius:8px;padding:32px;text-align:center;cursor:pointer;transition:all .2s}
+.upload-area:hover{border-color:#2478e0;background:#f0f6ff}
+.upload-area.active{border-color:#2478e0;background:#f0f6ff}
+.upload-tip{color:#666;font-size:14px;margin-top:8px;line-height:1.5}
+.info-line{margin:10px 0}
+.control-bar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
+input[type="text"]{padding:7px 10px;border:1px solid #bcc8dd;border-radius:5px;font-size:14px}
+select{padding:7px 10px;border:1px solid #bcc8dd;border-radius:5px;font-size:14px;background:#fff}
+button{padding:8px 14px;border:none;border-radius:5px;cursor:pointer;font-weight:500;font-size:14px}
+button:hover{opacity:0.9}
+.btn-orange{background:#ff9f00;color:#fff}
+.btn-red{background:#e53935;color:#fff}
+.btn-gray{background:#e2e8f0;color:#333}
+.btn-blue{background:#2478e0;color:#fff}
+.btn-green{background:#28a745;color:#fff}
+.log-box{background:#1e293b;color:#89e889;padding:12px;border-radius:6px;height:160px;overflow:auto;font-family:monospace;font-size:13px;margin-top:12px}
+.group-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.group-card{border:1px solid #dce4f0;border-radius:8px;overflow:hidden;background:#fff}
+.group-header{background:#f7f9fc;padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;flex-wrap:wrap}
+.group-header:hover{background:#eef3fa}
+.group-body{padding:10px;display:none;overflow-x:auto}
+.group-body.open{display:block}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+th,td{border:1px solid #e8edf4;padding:7px;text-align:left;white-space:nowrap}
+th{background:#244b9c;color:#fff}
+.single-table{width:100%;border-collapse:collapse;margin-top:12px}
+.single-table th,.single-table td{border:1px solid #e8edf4;padding:8px}
+.tip-ok{background:#e6ffed;border:1px solid #8fd9a8;color:#137733;padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:12px;line-height:1.6}
+.tip-error{background:#ffeaea;border:1px solid #ffb4b4;color:#b42424;padding:8px 12px;border-radius:6px;font-size:13px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="sidebar">
+    <div class="title">🖼 图片转换器</div>
+    <div class="menu-item active" data-page="single">📦 单ASIN批量打包</div>
+    <div class="menu-item" data-page="multi">🗂️ 多ASIN分组打包</div>
+  </div>
+
+  <div class="main">
+    <div class="header-bar">
+      <h2>亚马逊图片批量上传转换器</h2>
+      <div style="font-size:14px;opacity:0.9">本地运行·图片不上传服务器·自动按规则命名</div>
+    </div>
+
+    <!-- 单ASIN页面 -->
+    <div class="page active" id="page-single">
+      <div class="page-card">
+        <h3>单ASIN批量打包 <span style="font-weight:normal;font-size:14px;color:#666">单个商品图片快速处理，输出单ASIN压缩包</span></h3>
+        <div class="control-bar" style="margin-top:16px">
+          <label>商品ASIN：</label>
+          <input type="text" id="singleAsin" placeholder="输入ASIN，如 B0XXXXXXXXX" style="width:220px">
+          <label>站点：</label>
+          <select id="singleSite">
+            <option value="US">US</option>
+            <option value="CA">CA</option>
+            <option value="UK">UK</option>
+            <option value="DE">DE</option>
+            <option value="JP">JP</option>
+          </select>
+        </div>
+        <div class="upload-area" id="singleUploadArea" style="margin-top:12px">
+          <div style="font-size:32px;">🖼️</div>
+          <div>拖入本商品全部图片 或 点击选择图片</div>
+          <div class="upload-tip">支持 jpg/png，自动识别图片类型并顺序编号</div>
+          <input type="file" id="singleFileInput" multiple accept="image/*" style="display:none">
+        </div>
+        <div class="info-line" style="margin-top:12px">已载入图片：<span id="singleImgCount">0</span> 张</div>
+        
+        <div id="singleMainTip" class="tip-error" style="display:none">
+          ⚠️ 未识别到主图（MAIN），生成压缩包时会报错，请在「手动类型」列中设置主图
+        </div>
+
+        <div class="control-bar">
+          <button class="btn-orange" id="singleGenZip">生成ASIN压缩包</button>
+          <button class="btn-gray" id="singleReset">重置映射</button>
+          <button class="btn-gray" id="singleExport">导出对照表</button>
+          <button class="btn-red" id="singleClear">清空全部</button>
+        </div>
+        <table class="single-table" id="singleTable">
+          <thead>
+            <tr>
+              <th>原始文件名</th>
+              <th>自动类型</th>
+              <th>手动类型</th>
+              <th>映射后文件名</th>
+              <th>备注(不会影响输出结果)</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="singleTbody"></tbody>
+        </table>
+        <div class="log-box" id="singleLog"></div>
+      </div>
+    </div>
+
+    <!-- 多ASIN页面 -->
+    <div class="page" id="page-multi">
+      <div class="page-card">
+        <h3>多ASIN文件夹分组打包 <span style="font-weight:normal;font-size:14px;color:#444">按文件夹名自动分组，ZIP内无文件夹层级</span></h3>
+        
+        <div class="tip-ok">
+          ✅ <strong>在线打开使用提示</strong>：选中多个商品文件夹，一起拖拽到左侧区域，即可批量自动分组。
+          <br>本地双击打开请使用右侧「点击选择文件夹」，可多次点击追加分组。
+        </div>
+
+        <div class="upload-row" style="margin-top:16px">
+          <div class="upload-area" id="multiDropArea">
+            <div style="font-size:32px;">📁</div>
+            <div>拖拽多个商品文件夹（推荐）</div>
+            <div class="upload-tip">支持同时拖入多个文件夹<br>自动按文件夹名作为SKU分组</div>
+            <input type="file" id="multiFolderInput" webkitdirectory multiple style="display:none">
+          </div>
+          <div class="upload-area" id="multiClickArea">
+            <div style="font-size:32px;">📂</div>
+            <div>点击选择文件夹（兼容本地）</div>
+            <div class="upload-tip">一次选1个文件夹<br>可多次点击追加不同分组</div>
+            <input type="file" id="multiClickInput" webkitdirectory multiple style="display:none">
+          </div>
+        </div>
+
+        <div class="info-line">
+          <span style="border:2px solid #e53935;padding:4px 8px;border-radius:4px;">已载入图片：<span id="multiImgCount">0</span> 张</span>
+          <span style="margin-left:16px">已识别分组：<span id="groupCount">0</span> 个</span>
+        </div>
+
+        <div class="control-bar">
+          <input type="text" placeholder="搜索SKU快速定位" id="searchSku" style="width:200px">
+          <button class="btn-gray" id="expandAll">全部展开</button>
+          <button class="btn-gray" id="collapseAll">全部折叠</button>
+          <button class="btn-green" id="applyAllAsin">一键应用全部ASIN</button>
+          <div style="flex-grow:1"></div>
+          <button class="btn-orange" id="multiGenZip">生成多ASIN合并ZIP</button>
+          <button class="btn-gray" id="multiReset">重置全部映射</button>
+          <button class="btn-gray" id="multiExport">导出多ASIN对照表</button>
+          <button class="btn-red" id="multiClear">清空全部</button>
+        </div>
+
+        <div class="group-grid" id="groupContainer"></div>
+        <div class="log-box" id="multiLog"></div>
+        <div style="text-align:center;margin-top:14px;color:#666;font-size:13px">亚马逊图片批量转换器·本地浏览器运行，所有图片不上传服务器</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+// ========== 页面切换 ==========
+document.querySelectorAll('.menu-item').forEach(item=>{
+  item.onclick = ()=>{
+    document.querySelectorAll('.menu-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    const page = item.dataset.page;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+page).classList.add('active');
+  }
+})
+
+// ========== 通用工具函数 ==========
+function isImageFile(filename){
+  const ext = filename.split('.').pop().toLowerCase();
+  return ['jpg','jpeg','png','webp','gif'].includes(ext);
+}
+
+function getTodayDateStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function keywordDetect(filename){
+  const fn = filename.toLowerCase();
+  
+  // 1. MAIN强特征
+  if(fn.includes('主图') || fn.includes('白底') || fn.includes('main')) return 'MAIN';
+  if(fn.includes('画板') && fn.includes('1')) return 'MAIN';
+  
+  // 2. PT强特征（优先级高于弱MAIN特征）
+  if(fn.includes('尺寸') || fn.includes('size')) return 'PT01';
+  if(fn.includes('场景') || fn.includes('scene')) return 'PT02';
+  if(fn.includes('细节') || fn.includes('detail')) return 'PT03';
+  if(fn.includes('人物') || fn.includes('model')) return 'PT04';
+  if(fn.includes('包装') || fn.includes('package')) return 'PT05';
+  
+  // 3. MAIN弱特征（第1张命名规则）
+  if(/^1\./.test(fn)) return 'MAIN';
+  if(fn.includes('(1)') || fn.includes('（1）')) return 'MAIN';
+  
+  return null;
+}
+
+function assignTypes(images){
+  images.forEach(img=>{
+    img.autoType = keywordDetect(img.origName);
+  });
+
+  const usedPT = new Set();
+  images.forEach(img=>{
+    if(img.autoType && img.autoType.startsWith('PT')){
+      usedPT.add(parseInt(img.autoType.replace('PT','')));
+    }
+  });
+
+  let ptNum = 1;
+  images.forEach(img=>{
+    if(!img.autoType){
+      while(usedPT.has(ptNum)) ptNum++;
+      img.autoType = `PT${ptNum.toString().padStart(2,'0')}`;
+      usedPT.add(ptNum);
+      ptNum++;
+    }
+    if(!img.manualType){
+      img.manualType = img.autoType;
+    }
+  });
+}
+
+// ========== 单ASIN逻辑 ==========
+let singleImages = [];
+const singleLog = document.getElementById('singleLog');
+function slog(msg){
+  const t = new Date().toLocaleTimeString();
+  singleLog.innerHTML += `[${t}] ${msg}\n`;
+  singleLog.scrollTop = singleLog.scrollHeight;
+}
+
+const singleUploadArea = document.getElementById('singleUploadArea');
+const singleFileInput = document.getElementById('singleFileInput');
+singleUploadArea.onclick = ()=>singleFileInput.click();
+singleUploadArea.ondragover = e=>{e.preventDefault();singleUploadArea.classList.add('active')};
+singleUploadArea.ondragleave = ()=>singleUploadArea.classList.remove('active');
+singleUploadArea.ondrop = e=>{
+  e.preventDefault();
+  singleUploadArea.classList.remove('active');
+  addSingleImages(e.dataTransfer.files);
+}
+singleFileInput.onchange = e=>{
+  addSingleImages(e.target.files);
+  singleFileInput.value = '';
+}
+
+function addSingleImages(files){
+  let add = 0;
+  for(let f of files){
+    if(!isImageFile(f.name)) continue;
+    singleImages.push({file:f, origName:f.name, autoType:null, manualType:'', note:''});
+    add++;
+  }
+  assignTypes(singleImages);
+  document.getElementById('singleImgCount').textContent = singleImages.length;
+  slog(`✅ 新增 ${add} 张图片，已自动分配类型`);
+  renderSingleTable();
+}
+
+function renderSingleTable(){
+  const tbody = document.getElementById('singleTbody');
+  tbody.innerHTML = '';
+  const asin = document.getElementById('singleAsin').value.trim();
+  const mainCount = singleImages.filter(i=>i.manualType==='MAIN').length;
+
+  // 主图缺失提醒
+  const tipEl = document.getElementById('singleMainTip');
+  if(singleImages.length > 0 && mainCount !== 1){
+    tipEl.style.display = 'block';
+  } else {
+    tipEl.style.display = 'none';
+  }
+
+  singleImages.forEach((img,idx)=>{
+    const tr = document.createElement('tr');
+    const ext = img.origName.split('.').pop();
+    const mapName = asin && img.manualType ? `${asin}.${img.manualType}.${ext}` : '';
+    tr.innerHTML = `
+      <td>${img.origName}</td>
+      <td>${img.autoType || '-'}</td>
+      <td>
+        <select class="singleTypeSel" data-idx="${idx}">
+          <option value="">请选择</option>
+          <option value="MAIN" ${img.manualType==='MAIN'?'selected':''}>MAIN</option>
+          <option value="PT01" ${img.manualType==='PT01'?'selected':''}>PT01</option>
+          <option value="PT02" ${img.manualType==='PT02'?'selected':''}>PT02</option>
+          <option value="PT03" ${img.manualType==='PT03'?'selected':''}>PT03</option>
+          <option value="PT04" ${img.manualType==='PT04'?'selected':''}>PT04</option>
+          <option value="PT05" ${img.manualType==='PT05'?'selected':''}>PT05</option>
+          <option value="PT06" ${img.manualType==='PT06'?'selected':''}>PT06</option>
+          <option value="PT07" ${img.manualType==='PT07'?'selected':''}>PT07</option>
+          <option value="PT08" ${img.manualType==='PT08'?'selected':''}>PT08</option>
+          <option value="PT09" ${img.manualType==='PT09'?'selected':''}>PT09</option>
+          <option value="PT10" ${img.manualType==='PT10'?'selected':''}>PT10</option>
+        </select>
+      </td>
+      <td class="mapName">${mapName}</td>
+      <td><input class="singleNote" data-idx="${idx}" value="${img.note||''}" style="width:120px"></td>
+      <td><button class="btn-gray singleDel" data-idx="${idx}">删除</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.querySelectorAll('.singleTypeSel').forEach(sel=>{
+    sel.onchange = ()=>{
+      const idx = Number(sel.dataset.idx);
+      singleImages[idx].manualType = sel.value;
+      renderSingleTable();
+    }
+  });
+  document.querySelectorAll('.singleNote').forEach(inp=>{
+    inp.oninput = ()=>{
+      const idx = Number(inp.dataset.idx);
+      singleImages[idx].note = inp.value;
+    }
+  });
+  document.querySelectorAll('.singleDel').forEach(btn=>{
+    btn.onclick = ()=>{
+      const idx = Number(btn.dataset.idx);
+      singleImages.splice(idx,1);
+      assignTypes(singleImages);
+      document.getElementById('singleImgCount').textContent = singleImages.length;
+      slog('🗑 删除一张图片，已重新排序');
+      renderSingleTable();
+    }
+  });
+}
+
+document.getElementById('singleAsin').oninput = renderSingleTable;
+
+document.getElementById('singleGenZip').onclick = async ()=>{
+  const asin = document.getElementById('singleAsin').value.trim();
+  if(!asin){alert('请先输入ASIN');return;}
+  const mainCount = singleImages.filter(i=>i.manualType==='MAIN').length;
+  if(mainCount!==1){alert(`主图数量错误，需要1个MAIN，当前${mainCount}个`);return;}
+
+  const zip = new JSZip();
+  for(let img of singleImages){
+    const ext = img.origName.split('.').pop();
+    zip.file(`${asin}.${img.manualType}.${ext}`, img.file);
+  }
+  const blob = await zip.generateAsync({type:'blob'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${asin}.zip`;
+  a.click();
+  slog(`✅ ${asin}.zip 生成完成`);
+}
+
+document.getElementById('singleReset').onclick = ()=>{
+  singleImages.forEach(img=>img.manualType = img.autoType);
+  renderSingleTable();
+  slog('🔄 已重置为自动识别类型');
+}
+
+document.getElementById('singleClear').onclick = ()=>{
+  singleImages = [];
+  document.getElementById('singleImgCount').textContent = 0;
+  document.getElementById('singleTbody').innerHTML = '';
+  document.getElementById('singleMainTip').style.display = 'none';
+  singleLog.innerHTML = '';
+  slog('🧹 已清空全部');
+}
+
+document.getElementById('singleExport').onclick = ()=>{
+  const asin = document.getElementById('singleAsin').value.trim();
+  const rows = [['原始文件名','ASIN','自动类型','手动类型','映射文件名','备注']];
+  singleImages.forEach(img=>{
+    const ext = img.origName.split('.').pop();
+    const mapName = asin && img.manualType ? `${asin}.${img.manualType}.${ext}` : '';
+    rows.push([img.origName, asin, img.autoType||'', img.manualType, mapName, img.note||'']);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'对照表');
+  XLSX.writeFile(wb, `${asin||'单ASIN'}_图片映射表.xlsx`);
+  slog('📄 导出对照表成功');
+}
+
+// ========== 多ASIN逻辑 ==========
+let groupList = [];
+let multiTotal = 0;
+let lastMultiZipDate = '';
+let multiZipCounter = 0;
+const multiLog = document.getElementById('multiLog');
+function mlog(msg){
+  const t = new Date().toLocaleTimeString();
+  multiLog.innerHTML += `[${t}] ${msg}\n`;
+  multiLog.scrollTop = multiLog.scrollHeight;
+}
+
+function addImageToGroup(sku, file){
+  let group = groupList.find(g=>g.sku === sku);
+  if(!group){
+    group = {sku:sku, asin:'', site:'US', collapsed:true, images:[]};
+    groupList.push(group);
+  }
+  group.images.push({
+    file:file,
+    origName:file.name,
+    autoType:null,
+    manualType:'',
+    asin:'',
+    note:''
+  });
+  multiTotal++;
+  document.getElementById('multiImgCount').textContent = multiTotal;
+  document.getElementById('groupCount').textContent = groupList.length;
+}
+
+// 递归读取目录
+async function readDirEntry(dirEntry, skuName){
+  const reader = dirEntry.createReader();
+  let entries;
+  do {
+    entries = await new Promise(resolve => reader.readEntries(resolve));
+    for(let entry of entries){
+      if(entry.isFile){
+        const file = await new Promise(res=>entry.file(res));
+        if(isImageFile(file.name)){
+          addImageToGroup(skuName, file);
+        }
+      } else if(entry.isDirectory){
+        await readDirEntry(entry, skuName);
+      }
+    }
+  } while(entries.length > 0);
+}
+
+// 拖拽多文件夹处理
+const multiDropArea = document.getElementById('multiDropArea');
+multiDropArea.onclick = ()=>multiFolderInput.click();
+multiDropArea.ondragover = e=>{
+  e.preventDefault();
+  multiDropArea.classList.add('active');
+};
+multiDropArea.ondragleave = ()=>multiDropArea.classList.remove('active');
+multiDropArea.ondrop = async e=>{
+  e.preventDefault();
+  multiDropArea.classList.remove('active');
+  
+  const items = e.dataTransfer.items;
+  const entryList = [];
+
+  // 同步收集所有条目
+  for(let i=0;i<items.length;i++){
+    const entry = items[i].webkitGetAsEntry();
+    if(entry){
+      entryList.push(entry);
+    }
+  }
+
+  if(entryList.length === 0){
+    processFilesByPath(e.dataTransfer.files, '拖拽');
+    return;
+  }
+
+  mlog(`📥 捕获到 ${entryList.length} 个拖拽条目`);
+  let dirCount = 0;
+
+  // 异步逐个处理
+  for(let entry of entryList){
+    if(entry.isDirectory){
+      await readDirEntry(entry, entry.name);
+      dirCount++;
+    } else if(entry.isFile){
+      const file = await new Promise(res=>entry.file(res));
+      if(isImageFile(file.name)){
+        addImageToGroup('未分组', file);
+      }
+    }
+  }
+
+  groupList.forEach(g=>assignTypes(g.images));
+  mlog(`✅ 拖拽完成，识别 ${dirCount} 个文件夹，共 ${multiTotal} 张图片`);
+  renderGroups();
+}
+
+// 点击选择文件夹
+const multiClickInput = document.getElementById('multiClickInput');
+document.getElementById('multiClickArea').onclick = ()=>multiClickInput.click();
+multiClickInput.onchange = e=>{
+  const files = e.target.files;
+  mlog(`📥 文件夹选择返回 ${files.length} 个文件`);
+  processFilesByPath(files, '点击选择');
+  multiClickInput.value = '';
+}
+
+// 按文件路径分组
+function processFilesByPath(files, source){
+  let skuSet = new Set();
+  let imgCount = 0;
+
+  for(let f of files){
+    if(!isImageFile(f.name)) continue;
+    
+    const path = f.webkitRelativePath || f.relativePath || '';
+    let sku = '未分组';
+    if(path){
+      const parts = path.split('/').filter(Boolean);
+      if(parts.length >= 2) sku = parts[0];
+    }
+
+    addImageToGroup(sku, f);
+    skuSet.add(sku);
+    imgCount++;
+  }
+
+  groupList.forEach(g=>assignTypes(g.images));
+  mlog(`✅ ${source}完成，识别 ${skuSet.size} 个分组，新增 ${imgCount} 张图片`);
+  
+  if(imgCount === 0){
+    mlog('⚠️ 未识别到图片，请检查文件夹内是否有 jpg/png 文件');
+  }
+  
+  renderGroups();
+}
+
+function renderGroups(){
+  const container = document.getElementById('groupContainer');
+  container.innerHTML = '';
+  groupList.sort((a,b)=>a.sku.localeCompare(b.sku));
+
+  for(let g of groupList){
+    const mainCount = g.images.filter(i=>i.manualType==='MAIN').length;
+    const card = document.createElement('div');
+    card.className = 'group-card';
+    card.innerHTML = `
+      <div class="group-header" data-sku="${g.sku}">
+        <span style="font-size:16px">${g.collapsed ? '▸' : '▾'}</span>
+        <b>SKU: ${g.sku}</b>
+        <span style="color:#666;font-size:13px">(${g.images.length}张)</span>
+        <input type="text" placeholder="本组ASIN" value="${g.asin}" class="groupAsinInput" data-sku="${g.sku}" style="flex:1;min-width:120px">
+        <select class="groupSiteSel" data-sku="${g.sku}">
+          <option value="US" ${g.site==='US'?'selected':''}>US</option>
+          <option value="CA">CA</option>
+          <option value="UK">UK</option>
+        </select>
+        <button class="btn-blue applyAsinBtn" data-sku="${g.sku}">一键应用本组ASIN</button>
+        <button class="btn-red delGroupBtn" data-sku="${g.sku}">删除分组</button>
+      </div>
+      <div class="group-body ${g.collapsed?'':'open'}" data-sku="${g.sku}">
+        ${mainCount !== 1 ? '<div class="tip-error">⚠️ 缺少主图（MAIN），生成ZIP时会报错，请手动设置</div>' : ''}
+        <table>
+          <tr>
+            <th>原始文件名</th>
+            <th>ASIN</th>
+            <th>自动类型</th>
+            <th>手动类型</th>
+            <th>映射后文件名</th>
+            <th>备注(不会影响输出结果)</th>
+            <th>操作</th>
+          </tr>
+          ${g.images.map((img,idx)=>{
+            const ext = img.origName.split('.').pop();
+            const mapName = img.asin && img.manualType ? `${img.asin}.${img.manualType}.${ext}` : '';
+            return `
+            <tr>
+              <td>${img.origName}</td>
+              <td><input class="imgAsinInput" data-sku="${g.sku}" data-idx="${idx}" value="${img.asin}" style="width:130px"></td>
+              <td>${img.autoType || '-'}</td>
+              <td>
+                <select class="imgTypeSel" data-sku="${g.sku}" data-idx="${idx}">
+                  <option value="">请选择</option>
+                  <option value="MAIN" ${img.manualType==='MAIN'?'selected':''}>MAIN</option>
+                  <option value="PT01" ${img.manualType==='PT01'?'selected':''}>PT01</option>
+                  <option value="PT02" ${img.manualType==='PT02'?'selected':''}>PT02</option>
+                  <option value="PT03" ${img.manualType==='PT03'?'selected':''}>PT03</option>
+                  <option value="PT04" ${img.manualType==='PT04'?'selected':''}>PT04</option>
+                  <option value="PT05" ${img.manualType==='PT05'?'selected':''}>PT05</option>
+                  <option value="PT06" ${img.manualType==='PT06'?'selected':''}>PT06</option>
+                  <option value="PT07" ${img.manualType==='PT07'?'selected':''}>PT07</option>
+                  <option value="PT08" ${img.manualType==='PT08'?'selected':''}>PT08</option>
+                </select>
+              </td>
+              <td>${mapName}</td>
+              <td><input class="imgNoteInput" data-sku="${g.sku}" data-idx="${idx}" value="${img.note||''}" style="width:100px"></td>
+              <td><button class="btn-gray delImgBtn" data-sku="${g.sku}" data-idx="${idx}">删除</button></td>
+            </tr>`;
+          }).join('')}
+        </table>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+  bindGroupEvents();
+}
+
+function bindGroupEvents(){
+  // 折叠展开
+  document.querySelectorAll('.group-header').forEach(h=>{
+    h.onclick = e=>{
+      if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='BUTTON') return;
+      const sku = h.dataset.sku;
+      const g = groupList.find(x=>x.sku===sku);
+      g.collapsed = !g.collapsed;
+      renderGroups();
+    }
+  });
+
+  // ASIN输入实时保存
+  document.querySelectorAll('.groupAsinInput').forEach(inp=>{
+    inp.oninput = ()=>{
+      const sku = inp.dataset.sku;
+      const g = groupList.find(x=>x.sku===sku);
+      g.asin = inp.value.trim();
+    }
+  });
+
+  // 一键应用本组ASIN
+  document.querySelectorAll('.applyAsinBtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const sku = btn.dataset.sku;
+      const g = groupList.find(x=>x.sku===sku);
+      g.images.forEach(img=>img.asin = g.asin);
+      mlog(`✅ 【${sku}】全部图片填充ASIN: ${g.asin}`);
+      renderGroups();
+    }
+  });
+
+  // 删除分组
+  document.querySelectorAll('.delGroupBtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const sku = btn.dataset.sku;
+      const g = groupList.find(x=>x.sku===sku);
+      const imgNum = g.images.length;
+      groupList = groupList.filter(x=>x.sku!==sku);
+      multiTotal -= imgNum;
+      document.getElementById('multiImgCount').textContent = multiTotal;
+      document.getElementById('groupCount').textContent = groupList.length;
+      mlog(`🗑 删除分组【${sku}】，移除 ${imgNum} 张图片`);
+      renderGroups();
+    }
+  });
+
+  // 单张ASIN修改
+  document.querySelectorAll('.imgAsinInput').forEach(inp=>{
+    inp.oninput = ()=>{
+      const sku = inp.dataset.sku;
+      const idx = Number(inp.dataset.idx);
+      const g = groupList.find(x=>x.sku===sku);
+      g.images[idx].asin = inp.value;
+      renderGroups();
+    }
+  });
+
+  // 类型修改
+  document.querySelectorAll('.imgTypeSel').forEach(sel=>{
+    sel.onchange = ()=>{
+      const sku = sel.dataset.sku;
+      const idx = Number(sel.dataset.idx);
+      const g = groupList.find(x=>x.sku===sku);
+      g.images[idx].manualType = sel.value;
+      renderGroups();
+    }
+  });
+
+  // 备注
+  document.querySelectorAll('.imgNoteInput').forEach(inp=>{
+    inp.oninput = ()=>{
+      const sku = inp.dataset.sku;
+      const idx = Number(inp.dataset.idx);
+      const g = groupList.find(x=>x.sku===sku);
+      g.images[idx].note = inp.value;
+    }
+  });
+
+  // 删除单张图片
+  document.querySelectorAll('.delImgBtn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const sku = btn.dataset.sku;
+      const idx = Number(btn.dataset.idx);
+      const g = groupList.find(x=>x.sku===sku);
+      g.images.splice(idx,1);
+      assignTypes(g.images);
+      multiTotal--;
+      document.getElementById('multiImgCount').textContent = multiTotal;
+      if(g.images.length===0){
+        groupList = groupList.filter(x=>x.sku!==sku);
+        document.getElementById('groupCount').textContent = groupList.length;
+      }
+      mlog(`🗑 删除图片：${sku} 第${idx+1}张，已重新排序`);
+      renderGroups();
+    }
+  });
+}
+
+// ========== 全局按钮 ==========
+document.getElementById('expandAll').onclick = ()=>{
+  groupList.forEach(g=>g.collapsed=false);
+  renderGroups();
+  mlog('📂 全部展开');
+}
+document.getElementById('collapseAll').onclick = ()=>{
+  groupList.forEach(g=>g.collapsed=true);
+  renderGroups();
+  mlog('📁 全部折叠');
+}
+
+// 一键应用全部ASIN
+document.getElementById('applyAllAsin').onclick = ()=>{
+  let count = 0;
+  groupList.forEach(g=>{
+    if(g.asin){
+      g.images.forEach(img=>img.asin = g.asin);
+      count++;
+    } else {
+      g.images.forEach(img=>img.asin = '');
+    }
+  });
+  mlog(`✅ 已批量应用全部分组ASIN，共处理 ${count} 个分组`);
+  renderGroups();
+}
+
+document.getElementById('multiClear').onclick = ()=>{
+  groupList = [];
+  multiTotal = 0;
+  document.getElementById('multiImgCount').textContent = 0;
+  document.getElementById('groupCount').textContent = 0;
+  document.getElementById('groupContainer').innerHTML = '';
+  multiLog.innerHTML = '';
+  mlog('🧹 全部清空');
+}
+document.getElementById('multiReset').onclick = ()=>{
+  groupList.forEach(g=>g.images.forEach(img=>img.manualType = img.autoType));
+  renderGroups();
+  mlog('🔄 全部重置为自动识别类型');
+}
+
+document.getElementById('multiGenZip').onclick = async ()=>{
+  let hasError = false;
+  const nameSet = new Set();
+
+  for(let g of groupList){
+    const mainCount = g.images.filter(i=>i.manualType==='MAIN').length;
+    if(mainCount !== 1){
+      mlog(`❌ 【${g.sku}】主图数量错误，需要1个MAIN，当前${mainCount}个`);
+      hasError = true;
+    }
+    for(let img of g.images){
+      if(!img.asin){
+        mlog(`❌ 【${g.sku}】存在未填写ASIN的图片`);
+        hasError = true;
+        break;
+      }
+      const ext = img.origName.split('.').pop();
+      const newName = `${img.asin}.${img.manualType}.${ext}`;
+      if(nameSet.has(newName)){
+        mlog(`❌ 文件名重复：${newName}`);
+        hasError = true;
+      }
+      nameSet.add(newName);
+    }
+  }
+
+  if(hasError){alert('存在校验错误，请查看日志');return;}
+
+  const zip = new JSZip();
+  for(let g of groupList){
+    for(let img of g.images){
+      const ext = img.origName.split('.').pop();
+      zip.file(`${img.asin}.${img.manualType}.${ext}`, img.file);
+    }
+  }
+
+  // 按规则生成ZIP文件名
+  const today = getTodayDateStr();
+  if(today !== lastMultiZipDate){
+    lastMultiZipDate = today;
+    multiZipCounter = 1;
+  } else {
+    multiZipCounter++;
+  }
+
+  let zipFileName;
+  if(multiZipCounter === 1){
+    zipFileName = `${today}-image set.zip`;
+  } else {
+    const seq = String(multiZipCounter - 1).padStart(2,'0');
+    zipFileName = `${today}-image set-${seq}.zip`;
+  }
+
+  const blob = await zip.generateAsync({type:'blob'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = zipFileName;
+  a.click();
+  mlog(`✅ 合并ZIP包生成完成：${zipFileName}，内部无文件夹层级`);
+}
+
+document.getElementById('multiExport').onclick = ()=>{
+  const rows = [['SKU分组','原始文件名','ASIN','自动类型','手动类型','映射文件名','备注']];
+  for(let g of groupList){
+    g.images.forEach(img=>{
+      const ext = img.origName.split('.').pop();
+      const mapName = img.asin && img.manualType ? `${img.asin}.${img.manualType}.${ext}` : '';
+      rows.push([g.sku, img.origName, img.asin, img.autoType||'', img.manualType, mapName, img.note||'']);
+    });
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'多ASIN对照表');
+  XLSX.writeFile(wb,'多ASIN图片映射对照表.xlsx');
+  mlog('📄 导出对照表成功');
+}
+
+document.getElementById('searchSku').oninput = e=>{
+  const kw = e.target.value.toLowerCase();
+  document.querySelectorAll('.group-card').forEach(card=>{
+    const sku = card.querySelector('.group-header').dataset.sku.toLowerCase();
+    card.style.display = sku.includes(kw) ? 'block' : 'none';
+  });
+}
+
+slog('✅ 单ASIN模式就绪');
+mlog('✅ 多ASIN模式就绪：选中多个文件夹一起拖拽到左侧区域，即可批量分组');
+</script>
+</body>
+</html>
