@@ -66,6 +66,13 @@ body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple
 #picTool .tool-head .th-logo svg{width:22px;height:22px}
 #picTool .tool-head h1{font-size:19px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0}
 #picTool .tool-head .th-sub{font-size:12px;color:#9aa7b8;margin-left:4px;font-weight:400}
+
+/* ===== 统一横条（图片，覆盖） ===== */
+#picTool .tool-head{min-height:56px;padding:0 22px;display:flex;align-items:center;gap:14px;box-sizing:border-box}
+#picTool .tool-head .th-logo{width:30px;height:30px;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex:none}
+#picTool .tool-head .th-logo svg{width:22px;height:22px}
+#picTool .tool-head h1{font-size:18px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0;line-height:1;white-space:nowrap}
+#picTool .tool-head .th-sub{font-size:12.5px;color:#9aa7b8;margin-left:10px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;line-height:1}
 </style>
 <style>
 /* ========== 广告工具样式 ========== */
@@ -109,6 +116,13 @@ body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple
 #adTool .tool-head .th-logo svg{width:22px;height:22px}
 #adTool .tool-head h1{font-size:19px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0}
 #adTool .tool-head .th-sub{font-size:12px;color:#9aa7b8;margin-left:4px;font-weight:400}
+
+/* ===== 统一横条（广告，覆盖） ===== */
+#adTool .tool-head{min-height:56px;padding:0 22px;display:flex;align-items:center;gap:14px;box-sizing:border-box}
+#adTool .tool-head .th-logo{width:30px;height:30px;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex:none}
+#adTool .tool-head .th-logo svg{width:22px;height:22px}
+#adTool .tool-head h1{font-size:18px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0;line-height:1;white-space:nowrap}
+#adTool .tool-head .th-sub{font-size:12.5px;color:#9aa7b8;margin-left:10px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;line-height:1}
 </style>
 </head>
 <body>
@@ -2262,11 +2276,18 @@ init();
 #awdTool .tool-head .th-logo svg{width:22px;height:22px}
 #awdTool .tool-head h1{font-size:19px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0}
 #awdTool .tool-head .th-sub{font-size:12px;color:#9aa7b8;margin-left:4px;font-weight:400}
+
+/* ===== 统一横条（AWD，覆盖） ===== */
+#awdTool .tool-head{min-height:56px;padding:0 22px;display:flex;align-items:center;gap:14px;box-sizing:border-box}
+#awdTool .tool-head .th-logo{width:30px;height:30px;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex:none}
+#awdTool .tool-head .th-logo svg{width:22px;height:22px}
+#awdTool .tool-head h1{font-size:18px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0;line-height:1;white-space:nowrap}
+#awdTool .tool-head .th-sub{font-size:12.5px;color:#9aa7b8;margin-left:10px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;line-height:1}
 </style>
 <div class="tool-head">
   <div class="th-logo"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="12" rx="2" fill="#fff"></rect><path d="M3 10h18M12 7v12" stroke="#16212e" stroke-width="1.6" stroke-linecap="round"></path></svg></div>
   <h1>AWD 装箱单转换器</h1>
-  <span class="th-sub">源：MSKU / 单箱数量 / 箱数 / 毛重(kg) / 长宽高(cm) → 输出 Amazon AWD 入库上传模板 · 纯离线</span>
+  <span class="th-sub">装箱单 → Amazon AWD 入库上传模板 · 纯离线</span>
 </div>
 <div class="wrap">
   
@@ -3224,7 +3245,14 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
     #couponTool .result-head { gap: 6px; }
   }
 
-    </style>
+    
+/* ===== 统一横条（Coupon，覆盖） ===== */
+#couponTool .topbar{min-height:56px;padding:0 22px;display:flex;align-items:center;gap:14px;box-sizing:border-box}
+#couponTool .topbar .logo{width:30px;height:30px;border-radius:0;background:transparent;display:flex;align-items:center;justify-content:center;flex:none}
+#couponTool .topbar .logo svg{width:22px;height:22px}
+#couponTool .topbar h1{font-size:18px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0;line-height:1;white-space:nowrap}
+#couponTool .topbar .sub{font-size:12.5px;color:#9aa7b8;margin-left:10px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%;line-height:1}
+</style>
 <div class="topbar">
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" fill="#fff"></rect><path d="M7 12h10M7 9h4M7 15h6" stroke="#16212e" stroke-width="1.6" stroke-linecap="round"></path></svg>
