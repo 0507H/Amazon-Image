@@ -59,6 +59,13 @@ body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple
 #picTool .page-card{overflow-x:auto}
 #picTool .single-table{min-width:720px}
 #picTool .single-table th,#picTool .single-table td{white-space:nowrap}
+
+/* ===== 统一顶部标题横条（图片工具） ===== */
+#picTool .tool-head{background:#16212e;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:14px}
+#picTool .tool-head .th-logo{width:34px;height:34px;border-radius:8px;background:#ff9900;display:flex;align-items:center;justify-content:center;flex:none}
+#picTool .tool-head .th-logo svg{width:22px;height:22px}
+#picTool .tool-head h1{font-size:19px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0}
+#picTool .tool-head .th-sub{font-size:12px;color:#9aa7b8;margin-left:4px;font-weight:400}
 </style>
 <style>
 /* ========== 广告工具样式 ========== */
@@ -95,6 +102,13 @@ body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple
   @media (max-width:640px){#adTool .hd-title{font-size:24px;}#adTool main{padding:16px 10px 48px;}#adTool .card{padding:16px 14px;}#adTool .opts{grid-template-columns:1fr; gap:14px;}#adTool .fmt-wrap{grid-column:1;}#adTool .fmt-g{flex:1 1 44%;}
   }#adTool .dlbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0;padding:10px 14px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:10px;font-size:13px;color:#475569}#adTool .dlbar-info{margin-left:auto;font-size:12px;color:#64748b;min-width:180px;text-align:right}#adTool .dlbar-info.ok{color:#16a34a;font-weight:600}#adTool .fmt-wrap{grid-column:2;}#adTool .fmt-row{display:flex;gap:10px;flex-wrap:wrap;padding-top:2px}#adTool .fmt-g{display:flex;align-items:center;gap:6px;flex:1 1 0;min-width:120px;max-width:230px}#adTool .fmt-g input{flex:1;min-width:0;padding:9px 10px}#adTool .fmt-tag{font-style:normal;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;color:#fff;letter-spacing:.5px;flex-shrink:0}#adTool .fmt-tag.sp{background:#f59e0b}#adTool .fmt-tag.sb{background:#3b82f6}#adTool .fmt-tag.sd{background:#10b981}
 
+
+/* ===== 统一顶部标题横条（广告工具） ===== */
+#adTool .tool-head{background:#16212e;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:14px}
+#adTool .tool-head .th-logo{width:34px;height:34px;border-radius:8px;background:#ff9900;display:flex;align-items:center;justify-content:center;flex:none}
+#adTool .tool-head .th-logo svg{width:22px;height:22px}
+#adTool .tool-head h1{font-size:19px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0}
+#adTool .tool-head .th-sub{font-size:12px;color:#9aa7b8;margin-left:4px;font-weight:400}
 </style>
 </head>
 <body>
@@ -124,10 +138,11 @@ body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple
 
     <section class="view active" id="viewPicSingle">
       <div id="picTool">
-<div class="header-bar">
-      <h2>亚马逊图片批量上传转换器</h2>
-      <div style="font-size:14px;opacity:0.9">本地运行·图片不上传服务器·自动按规则命名</div>
-    </div>
+<div class="tool-head">
+  <div class="th-logo"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" fill="#fff"></rect><circle cx="8.5" cy="9.5" r="1.5" fill="#16212e"></circle><path d="M21 15l-5-5-8 8" stroke="#16212e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+  <h1>亚马逊图片批量上传转换器</h1>
+  <span class="th-sub">本地运行 · 图片不上传服务器 · 自动按规则命名</span>
+</div>
 <div class="page active" id="page-single">
       <div class="page-card">
         <h3>单ASIN批量打包 <span style="font-weight:normal;font-size:14px;color:#666">单个商品图片快速处理，输出单ASIN压缩包</span></h3>
@@ -183,6 +198,11 @@ body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple
 
     <section class="view" id="viewPicMulti">
       <div id="picTool">
+<div class="tool-head">
+  <div class="th-logo"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" fill="#fff"></rect><circle cx="8.5" cy="9.5" r="1.5" fill="#16212e"></circle><path d="M21 15l-5-5-8 8" stroke="#16212e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+  <h1>多ASIN分组打包</h1>
+  <span class="th-sub">按文件夹名自动分组 · ZIP内无文件夹层级</span>
+</div>
 <div class="page" id="page-multi">
       <div class="page-card">
         <h3>多ASIN文件夹分组打包 <span style="font-weight:normal;font-size:14px;color:#444">按文件夹名自动分组，ZIP内无文件夹层级</span></h3>
@@ -237,20 +257,11 @@ body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple
       <div id="adTool">
 
 
-<header class="app">
-  <div class="hd-inner">
-    <div>
-      <div class="hd-title"><span class="logo">A</span>亚马逊批量广告表格生成器</div>
-      <div class="hd-sub">上传输入模板 → 一键生成亚马逊广告批量上传表（SP / SB / SD）</div>
-    </div>
-    <div class="hd-badges">
-      <span class="hd-badge"><b>SP</b> 商品推广</span>
-      <span class="hd-badge"><b>SB</b> 品牌推广</span>
-      <span class="hd-badge"><b>SBV</b> 视频广告</span>
-      <span class="hd-badge"><b>SD</b> 展示型推广</span>
-    </div>
-  </div>
-</header>
+<div class="tool-head">
+  <div class="th-logo"><svg viewBox="0 0 24 24" fill="none"><path d="M4 9v6h3l5 4V5l-5 4H4z" fill="#fff"></path><path d="M15 9a4 4 0 010 6M17 6a8 8 0 010 12" stroke="#16212e" stroke-width="1.6" stroke-linecap="round"></path></svg></div>
+  <h1>亚马逊批量广告表格生成器</h1>
+  <span class="th-sub">上传输入模板 → 一键生成亚马逊广告批量上传表（SP / SB / SD）</span>
+</div>
 
 <main>
   <!-- ===== 步骤1：上传 ===== -->
@@ -2244,10 +2255,21 @@ init();
 #awdTool .note {font-size:12px;color:#6b7280;margin-top:6px}
 #awdTool h2 {font-size:14px;margin:0 0 10px;color:#374151}
 
-    </style>
-<div class="wrap">
+    
+/* ===== 统一顶部标题横条（AWD工具） ===== */
+#awdTool .tool-head{background:#16212e;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:14px}
+#awdTool .tool-head .th-logo{width:34px;height:34px;border-radius:8px;background:#ff9900;display:flex;align-items:center;justify-content:center;flex:none}
+#awdTool .tool-head .th-logo svg{width:22px;height:22px}
+#awdTool .tool-head h1{font-size:19px;font-weight:700;letter-spacing:.5px;color:#fff;margin:0}
+#awdTool .tool-head .th-sub{font-size:12px;color:#9aa7b8;margin-left:4px;font-weight:400}
+</style>
+<div class="tool-head">
+  <div class="th-logo"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="7" width="18" height="12" rx="2" fill="#fff"></rect><path d="M3 10h18M12 7v12" stroke="#16212e" stroke-width="1.6" stroke-linecap="round"></path></svg></div>
   <h1>AWD 装箱单转换器</h1>
-  <div class="sub">源：MSKU / 单箱数量 / 箱数 / 毛重(kg) / 长宽高(cm)　→　输出：Amazon AWD 入库上传模板（Create workflow – template）　·　纯离线，不上传任何数据</div>
+  <span class="th-sub">源：MSKU / 单箱数量 / 箱数 / 毛重(kg) / 长宽高(cm) → 输出 Amazon AWD 入库上传模板 · 纯离线</span>
+</div>
+<div class="wrap">
+  
 
   <div id="status" class="status">等待文件…（支持一次拖入多个文件，或直接拖入整个文件夹）</div>
 
